@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Card Creation Tool</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body class="min-h-screen bg-slate-950 text-white">
+  <div class="page-bg"></div>
+
+  <main class="relative z-10 px-4 py-6 md:px-6 lg:px-8">
+    <header class="app-header">
+  <div class="brand-wrap">
+    <img src="airowlogo.png" alt="Airow Logo" class="brand-logo" />
+    <div>
+      <p class="brand-kicker">Internal Operations System</p>
+      <h1 class="brand-title">Job Card Creation Tool</h1>
+      <p class="brand-subtitle">Designed for Airow project, material, tools, and approval workflows.</p>
+    </div>
+  </div>
+</header>
+
+    <!-- Main Grid -->
+    <section class="section-shell section-full">
+  <div class="section-header-row">
+    <div>
+      <p class="section-kicker">Section 1</p>
+      <h2>Project Details</h2>
+      <p>Enter the core project information for the job card.</p>
+    </div>
+  </div>
+
+  <div class="form-block">
+    <label class="block text-sm font-medium mb-2">Project Title</label>
+    <div id="liveProjectTitle">
+      Waterproofing Works at Property at District
+    </div>
+  </div>
+
+  <div class="form-grid form-grid-2">
+    <div class="form-block">
+      <label for="jobCardNo">Job Card No</label>
+      <input id="jobCardNo" type="text" readonly />
+    </div>
+
+    <div class="form-block">
+      <label for="shortCode">Short Code</label>
+      <input id="shortCode" type="text" readonly />
+    </div>
+  </div>
+
+  <div class="form-grid form-grid-2">
+    <div class="form-block">
+      <label for="serviceType">Service Type</label>
+      <select id="serviceType">
+        <option value="Fireproofing Paint & firestops">Fireproofing Paint & firestops</option>
+        <option value="Carbon fiber wrapping (CFRP)">Carbon fiber wrapping (CFRP)</option>
+        <option value="Chemical & mechanical anchors">Chemical & mechanical anchors</option>
+        <option value="Concrete repairs & crack injection">Concrete repairs & crack injection</option>
+        <option value="Sealant & building expansion joint systems">Sealant & building expansion joint systems</option>
+        <option value="Epoxy & polyurethane flooring">Epoxy & polyurethane flooring</option>
+        <option value="Waterproofing" selected>Waterproofing</option>
+      </select>
+    </div>
+
+    <div class="form-block">
+      <label for="propertyName">Property / Place Name</label>
+      <input id="propertyName" type="text" placeholder="e.g., Diamond Pasta Factory" />
+    </div>
+  </div>
+
+  <div class="form-block material-search-wrap">
+    <label for="districtInput">District</label>
+    <input id="districtInput" type="text" autocomplete="off" placeholder="Start typing district..." />
+    <div id="districtSuggestions" class="material-suggestions hidden"></div>
+  </div>
+
+  <div class="form-grid form-grid-2 align-end">
+    <div class="form-block">
+      <label>Relationship Type</label>
+      <div class="relationship-group">
+        <button type="button" class="relationship-pill active-pill" data-value="Client">Client</button>
+        <button type="button" class="relationship-pill" data-value="Consultant">Consultant</button>
+        <button type="button" class="relationship-pill" data-value="Contractor">Contractor</button>
+      </div>
+    </div>
+
+    <div class="form-block">
+      <label id="entityLabel" for="entityName">Client Name</label>
+      <input id="entityName" type="text" placeholder="Enter entity name" />
+    </div>
+  </div>
+
+  <div class="form-grid form-grid-2">
+    <div class="form-block">
+      <label for="labourMethod">Labour Method</label>
+      <select id="labourMethod">
+        <option value="">Select labour method</option>
+        <option value="Man Days">Man Days</option>
+        <option value="Man Hours">Man Hours</option>
+        <option value="Hired Team">Hired Team</option>
+        <option value="Monthly Fee">Monthly Fee</option>
+        <option value="Project Fee">Project Fee</option>
+      </select>
+    </div>
+
+    <div class="form-block">
+      <label>Current Selected Relationship</label>
+      <input id="relationshipDisplay" type="text" value="Client" readonly />
+    </div>
+  </div>
+
+  <div class="form-grid form-grid-3">
+    <div class="form-block">
+      <label for="startDate">Start Date</label>
+      <input id="startDate" type="date" />
+    </div>
+
+    <div class="form-block">
+      <label for="targetDate">Target Completion</label>
+      <input id="targetDate" type="date" />
+    </div>
+
+    <div class="form-block">
+      <label for="actualDate">Actual Completion</label>
+      <input id="actualDate" type="date" disabled />
+    </div>
+  </div>
+</section>
+
+  <!-- Preview Modal -->
+  <div id="previewModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="w-full max-w-6xl rounded-3xl border border-white/10 bg-slate-900 shadow-2xl overflow-hidden">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-white/10">
+        <div>
+          <p class="text-sm uppercase tracking-[0.2em] text-blue-300">Preview Mode</p>
+          <h3 class="text-xl font-semibold text-white">Job Card Layout Preview</h3>
+        </div>
+        <button id="closePreviewBtn"
+          class="rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-2 text-white">
+          Close
+        </button>
+      </div>
+
+      <div class="p-4 md:p-6 overflow-x-auto">
+        <div id="previewCard" class="min-w-[900px] bg-white text-black rounded-2xl shadow-xl overflow-hidden">
+          <div class="bg-black text-white text-center py-3 text-xl font-bold">
+            JOB CARD - OPERATION
+          </div>
+
+          <table class="w-full border-collapse text-sm md:text-base">
+            <tr>
+              <td class="border border-black p-3 w-[18%] text-center font-medium">Project</td>
+              <td id="previewProjectTitle" class="border border-black p-3 w-[30%] text-xl font-medium"></td>
+              <td class="border border-black p-3 w-[12%] font-medium">Job Card No</td>
+              <td id="previewJobCardNo" class="border border-black p-3 w-[22%]"></td>
+            </tr>
+            <tr>
+              <td class="border border-black p-3"></td>
+              <td class="border border-black p-3"></td>
+              <td class="border border-black p-3 font-medium">Job short code</td>
+              <td id="previewShortCode" class="border border-black p-3 font-semibold"></td>
+            </tr>
+            <tr>
+              <td class="border border-black p-2 font-medium">Client</td>
+              <td id="previewClient" class="border border-black p-2"></td>
+              <td class="border border-black p-2 font-medium text-center" colspan="2">Date of Project</td>
+            </tr>
+            <tr>
+              <td class="border border-black p-2 font-medium">Consultant</td>
+              <td id="previewConsultant" class="border border-black p-2"></td>
+              <td class="border border-black p-2 font-medium">Start</td>
+              <td id="previewStart" class="border border-black p-2"></td>
+            </tr>
+            <tr>
+              <td class="border border-black p-2 font-medium">Contractor</td>
+              <td id="previewContractor" class="border border-black p-2"></td>
+              <td class="border border-black p-2 font-medium">Completion (Actual)</td>
+              <td id="previewActual" class="border border-black p-2"></td>
+            </tr>
+            <tr>
+              <td class="border border-black p-2 font-medium">Method of Labour Force</td>
+              <td id="previewLabour" class="border border-black p-2"></td>
+              <td class="border border-black p-2 font-medium">Completion (Targeted)</td>
+              <td id="previewTarget" class="border border-black p-2"></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+<section class="glass-card rounded-3xl p-5 md:p-7 border border-white/10 shadow-2xl mt-8">
+  <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
+    <div>
+      <p class="text-sm text-blue-300 uppercase tracking-[0.2em]">Section 2</p>
+      <h2 class="text-2xl font-semibold text-white">Requested Material Details</h2>
+      <p class="text-slate-300 mt-1">
+        Add requested materials, allocate quantities, and track used vs balance in real time.
+      </p>
+    </div>
+
+    <button
+      id="addMaterialRowBtn"
+      class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-medium px-5 py-3 shadow-lg shadow-blue-500/20 transition"
+      type="button"
+    >
+      <span class="text-lg leading-none">+</span>
+      <span>Add Item</span>
+    </button>
+  </div>
+
+  <div class="overflow-x-auto rounded-2xl border border-white/10">
+    <table class="min-w-[1200px] w-full border-collapse">
+      <thead class="bg-slate-900/80">
+        <tr>
+          <th class="table-head w-[80px]">Item No</th>
+          <th class="table-head min-w-[320px]">Material Description</th>
+          <th class="table-head w-[170px]">Allocated Qty</th>
+          <th class="table-head w-[120px]">Unit</th>
+          <th class="table-head w-[190px]">Cumulative Issued Qty</th>
+          <th class="table-head w-[150px]">Used Qty</th>
+          <th class="table-head w-[150px]">Balance Qty</th>
+          <th class="table-head w-[90px] text-center">Action</th>
+        </tr>
+      </thead>
+      <tbody id="materialsTableBody" class="bg-white/5">
+        <!-- Rows injected by JS -->
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="glass-card rounded-3xl p-5 md:p-7 border border-white/10 shadow-2xl mt-8">
+  <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
+    <div>
+      <p class="text-sm text-blue-300 uppercase tracking-[0.2em]">Section 3</p>
+      <h2 class="text-2xl font-semibold text-white">Tools and Machinery Detail</h2>
+      <p class="text-slate-300 mt-1">
+        Add tools, machinery, and site-use equipment with quantity tracking and live balance calculation.
+      </p>
+    </div>
+
+    <button
+      id="addToolRowBtn"
+      class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-medium px-5 py-3 shadow-lg shadow-blue-500/20 transition"
+      type="button"
+    >
+      <span class="text-lg leading-none">+</span>
+      <span>Add Item</span>
+    </button>
+  </div>
+
+  <div class="overflow-x-auto rounded-2xl border border-white/10">
+    <table class="min-w-[1200px] w-full border-collapse">
+      <thead class="bg-slate-900/80">
+        <tr>
+          <th class="table-head w-[80px]">Item No</th>
+          <th class="table-head min-w-[360px]">Tool / Machinery Description</th>
+          <th class="table-head w-[170px]">Allocated Qty</th>
+          <th class="table-head w-[120px]">Unit</th>
+          <th class="table-head w-[190px]">Cumulative Issued Qty</th>
+          <th class="table-head w-[150px]">Used Qty</th>
+          <th class="table-head w-[150px]">Balance Qty</th>
+          <th class="table-head w-[90px] text-center">Action</th>
+        </tr>
+      </thead>
+      <tbody id="toolsTableBody" class="bg-white/5">
+        <!-- Rows injected by JS -->
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="glass-card rounded-3xl p-5 md:p-7 border border-white/10 shadow-2xl mt-8">
+  <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-6">
+    <div>
+      <p class="text-sm text-blue-300 uppercase tracking-[0.2em]">Section 4</p>
+      <h2 class="text-2xl font-semibold text-white">Notes, Preparation & Approval</h2>
+      <p class="text-slate-300 mt-1">
+        Capture remarks, assigned personnel, and final preparation / approval details.
+      </p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+    <!-- Notes -->
+    <div class="xl:col-span-1">
+      <label for="remarksInput" class="block text-sm font-medium text-slate-300 mb-2">
+        Notes / Remarks
+      </label>
+      <div class="rounded-2xl border border-white/10 bg-white/5 p-3">
+        <textarea
+          id="remarksInput"
+          rows="12"
+          placeholder="Enter notes, special remarks, instructions, or tool list details..."
+          class="w-full rounded-2xl border border-white/10 bg-slate-900/70 px-4 py-4 text-white placeholder:text-slate-400 outline-none resize-none focus:border-blue-400"
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Prepared By -->
+    <div class="xl:col-span-1">
+      <div class="rounded-2xl border border-white/10 bg-white/5 p-4 h-full">
+        <p class="text-sm uppercase tracking-[0.15em] text-blue-300 mb-4">Prepared By</p>
+
+        <div class="space-y-4">
+          <div>
+            <label for="preparedByDate" class="block text-sm font-medium text-slate-300 mb-2">
+              Date
+            </label>
+            <input
+              id="preparedByDate"
+              type="date"
+              class="w-full rounded-2xl border border-white/10 bg-slate-900/70 px-4 py-3 text-white outline-none focus:border-blue-400"
+            />
+          </div>
+
+          <div>
+            <label for="preparedByName" class="block text-sm font-medium text-slate-300 mb-2">
+              Name
+            </label>
+            <div class="relative">
+              <input
+                id="preparedByName"
+                type="text"
+                autocomplete="off"
+                placeholder="Search or type a name..."
+                class="w-full rounded-2xl border border-white/10 bg-slate-900/70 px-4 py-3 text-white placeholder:text-slate-400 outline-none focus:border-blue-400"
+              />
+              <div id="preparedBySuggestions" class="person-suggestions hidden"></div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Signature</label>
+            <div class="signature-box">
+              <span class="signature-placeholder">Signature space reserved</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Approved By -->
+    <div class="xl:col-span-1">
+      <div class="rounded-2xl border border-white/10 bg-white/5 p-4 h-full">
+        <p class="text-sm uppercase tracking-[0.15em] text-blue-300 mb-4">Approved By</p>
+
+        <div class="space-y-4">
+          <div>
+            <label for="approvedByDate" class="block text-sm font-medium text-slate-300 mb-2">
+              Date
+            </label>
+            <input
+              id="approvedByDate"
+              type="date"
+              class="w-full rounded-2xl border border-white/10 bg-slate-900/70 px-4 py-3 text-white outline-none focus:border-blue-400"
+            />
+          </div>
+
+          <div>
+            <label for="approvedByName" class="block text-sm font-medium text-slate-300 mb-2">
+              Name
+            </label>
+            <div class="relative">
+              <input
+                id="approvedByName"
+                type="text"
+                autocomplete="off"
+                placeholder="Search or type a name..."
+                class="w-full rounded-2xl border border-white/10 bg-slate-900/70 px-4 py-3 text-white placeholder:text-slate-400 outline-none focus:border-blue-400"
+              />
+              <div id="approvedBySuggestions" class="person-suggestions hidden"></div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Signature</label>
+            <div class="signature-box">
+              <span class="signature-placeholder">Signature space reserved</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Action Bar -->
+<section class="glass-card mt-8">
+  <div class="action-bar">
+    <div class="action-left">
+      <button id="deleteBtn" class="btn-action btn-delete" type="button">Delete</button>
+    </div>
+
+    <div class="action-right">
+      <button id="saveDraftBtn" class="btn-action btn-secondary" type="button">Save as Draft</button>
+      <button id="printPdfBtn" class="btn-action btn-primary" type="button">Print as PDF</button>
+      <button id="publishBtn" class="btn-action btn-accent" type="button">Publish</button>
+    </div>
+  </div>
+</section>
+
+<!-- Hidden Print Layout -->
+<section id="printLayout" class="print-layout">
+  <div class="print-page">
+    <!-- Header -->
+    <div class="print-header">
+      <div class="print-brand">
+        <img src="airowlogo.png" alt="Airow Logo" class="print-logo" />
+        <div>
+          <h1>JOB CARD</h1>
+          <p>Airow Internal Operations Document</p>
+        </div>
+      </div>
+      <div class="print-doc-meta">
+        <div><strong>Job Card No:</strong> <span id="printJobCardNo">-</span></div>
+        <div><strong>Short Code:</strong> <span id="printShortCode">-</span></div>
+      </div>
+    </div>
+
+    <!-- Project Details -->
+    <div class="print-section">
+      <div class="print-section-title">1. Project Details</div>
+      <table class="print-table">
+        <tr>
+          <td class="label-cell">Project Title</td>
+          <td colspan="3" id="printProjectTitle">-</td>
+        </tr>
+        <tr>
+          <td class="label-cell">Service Type</td>
+          <td id="printServiceType">-</td>
+          <td class="label-cell">District</td>
+          <td id="printDistrict">-</td>
+        </tr>
+        <tr>
+          <td class="label-cell">Property / Place</td>
+          <td id="printPropertyName">-</td>
+          <td class="label-cell">Labour Method</td>
+          <td id="printLabourMethod">-</td>
+        </tr>
+        <tr>
+          <td class="label-cell">Client</td>
+          <td id="printClientName">-</td>
+          <td class="label-cell">Consultant</td>
+          <td id="printConsultantName">-</td>
+        </tr>
+        <tr>
+          <td class="label-cell">Contractor</td>
+          <td id="printContractorName">-</td>
+          <td class="label-cell">Relationship Type</td>
+          <td id="printRelationshipType">-</td>
+        </tr>
+        <tr>
+          <td class="label-cell">Start Date</td>
+          <td id="printStartDate">-</td>
+          <td class="label-cell">Target Completion</td>
+          <td id="printTargetDate">-</td>
+        </tr>
+        <tr>
+          <td class="label-cell">Actual Completion</td>
+          <td id="printActualDate">-</td>
+          <td class="label-cell"></td>
+          <td></td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Materials -->
+    <div class="print-section">
+      <div class="print-section-title">2. Requested Material Details</div>
+      <table class="print-table">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Material Description</th>
+            <th>Allocated Qty</th>
+            <th>Unit</th>
+            <th>Cumulative Issued Qty</th>
+            <th>Used Qty</th>
+            <th>Balance Qty</th>
+          </tr>
+        </thead>
+        <tbody id="printMaterialsBody">
+          <tr>
+            <td colspan="7" class="empty-print-row">No material items added</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Tools -->
+    <div class="print-section">
+      <div class="print-section-title">3. Tools and Machinery Detail</div>
+      <table class="print-table">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Tool / Machinery Description</th>
+            <th>Allocated Qty</th>
+            <th>Unit</th>
+            <th>Cumulative Issued Qty</th>
+            <th>Used Qty</th>
+            <th>Balance Qty</th>
+          </tr>
+        </thead>
+        <tbody id="printToolsBody">
+          <tr>
+            <td colspan="7" class="empty-print-row">No tools or machinery items added</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Notes -->
+    <div class="print-section">
+      <div class="print-section-title">4. Notes / Remarks</div>
+      <div id="printRemarks" class="print-remarks-box">-</div>
+    </div>
+
+    <!-- Signatures -->
+    <div class="print-section">
+      <div class="print-section-title">5. Preparation and Approval</div>
+      <div class="print-signature-grid">
+        <div class="print-sign-box">
+          <div><strong>Prepared By</strong></div>
+          <div class="meta-line">Name: <span id="printPreparedByName">-</span></div>
+          <div class="meta-line">Date: <span id="printPreparedByDate">-</span></div>
+          <div class="signature-space"></div>
+          <div class="signature-label">Signature</div>
+        </div>
+
+        <div class="print-sign-box">
+          <div><strong>Approved By</strong></div>
+          <div class="meta-line">Name: <span id="printApprovedByName">-</span></div>
+          <div class="meta-line">Date: <span id="printApprovedByDate">-</span></div>
+          <div class="signature-space"></div>
+          <div class="signature-label">Signature</div>
+        </div>
+
+        <div class="print-sign-box">
+          <div><strong>Client Acknowledgement</strong></div>
+          <div class="meta-line">Name: ____________________</div>
+          <div class="meta-line">Date: ____________________</div>
+          <div class="signature-space"></div>
+          <div class="signature-label">Signature</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+  <script src="script.js"></script>
+</body>
+</html>
