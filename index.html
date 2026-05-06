@@ -225,8 +225,7 @@
           <th class="table-head min-w-[320px]">Material Description</th>
           <th class="table-head w-[170px]">Allocated Qty</th>
           <th class="table-head w-[120px]">Unit</th>
-          <th class="table-head w-[190px]">Cumulative Issued Qty</th>
-          <th class="table-head w-[150px]">Used Qty</th>
+          <th class="table-head w-[220px]">Cumulative Issued Qty</th>
           <th class="table-head w-[150px]">Balance Qty</th>
           <th class="table-head w-[90px] text-center">Action</th>
         </tr>
@@ -485,13 +484,12 @@
             <th>Allocated Qty</th>
             <th>Unit</th>
             <th>Cumulative Issued Qty</th>
-            <th>Used Qty</th>
             <th>Balance Qty</th>
           </tr>
         </thead>
         <tbody id="printMaterialsBody">
           <tr>
-            <td colspan="7" class="empty-print-row">No material items added</td>
+            <td colspan="6" class="empty-print-row">No material items added</td>
           </tr>
         </tbody>
       </table>
@@ -557,6 +555,55 @@
     </div>
   </div>
 </section>
+
+<!-- Issue Now Modal -->
+<div id="issueNowModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Issue Material</h3>
+      <button type="button" class="modal-close" id="issueNowClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-material-name" id="issueNowMaterialName"></p>
+      <p class="modal-balance-info" id="issueNowBalanceInfo"></p>
+      <label for="issueQtyInput">Quantity to Issue</label>
+      <input type="number" id="issueQtyInput" min="0.01" step="any" class="modal-input" placeholder="Enter quantity" />
+      <p class="modal-error" id="issueNowError" style="display:none;"></p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-action btn-secondary" id="cancelIssueBtn">Cancel</button>
+      <button type="button" class="btn-action btn-primary" id="confirmIssueBtn">Confirm Issue</button>
+    </div>
+  </div>
+</div>
+
+<!-- View Issue List Modal -->
+<div id="viewListModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Issue History</h3>
+      <button type="button" class="modal-close" id="viewListClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-material-name" id="viewListMaterialName"></p>
+      <table class="issue-log-table" id="issueLogTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Issued Qty</th>
+            <th>Date</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody id="issueLogTableBody"></tbody>
+      </table>
+      <p id="viewListEmpty" class="modal-empty-msg">No issues recorded yet.</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-action btn-secondary" id="closeViewListBtn">Close</button>
+    </div>
+  </div>
+</div>
 
   <script src="script.js"></script>
 </body>

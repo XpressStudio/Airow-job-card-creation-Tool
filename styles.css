@@ -874,3 +874,210 @@ button {
     grid-template-columns: 1fr;
   }
 }
+
+/* Issue Tracking Modals */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(17, 24, 39, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-card {
+  background: #ffffff;
+  border: 1px solid var(--line-dark);
+  box-shadow: var(--shadow-lg);
+  max-width: 480px;
+  width: 92%;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  background: #f7f9fc;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-soft);
+  line-height: 1;
+  padding: 0 4px;
+}
+
+.modal-close:hover {
+  color: var(--text);
+}
+
+.modal-body {
+  padding: 18px;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 14px 18px;
+  border-top: 1px solid var(--line);
+  background: #fafbfc;
+}
+
+.modal-material-name {
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+
+.modal-balance-info {
+  color: var(--primary-blue);
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin: 0 0 14px;
+}
+
+.modal-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-dark);
+  background: #ffffff;
+  color: var(--text);
+  border-radius: 0;
+  outline: none;
+  font-size: 1rem;
+}
+
+.modal-input:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(80, 128, 188, 0.12);
+}
+
+.modal-error {
+  color: var(--danger-text);
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-line);
+  padding: 8px 10px;
+  font-size: 0.85rem;
+  margin-top: 10px;
+  font-weight: 600;
+}
+
+.modal-empty-msg {
+  text-align: center;
+  color: var(--text-soft);
+  font-style: italic;
+  padding: 16px 0;
+  margin: 0;
+}
+
+/* Cumulative Issue Cell */
+.cumulative-issue-cell {
+  text-align: center;
+  padding: 6px 8px;
+}
+
+.cumulative-display {
+  display: block;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.cumulative-btn-group {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+
+.btn-issue-now,
+.btn-view-list {
+  padding: 5px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid var(--line-dark);
+  cursor: pointer;
+  background: #ffffff;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.btn-issue-now {
+  border-color: #4caf50;
+  color: #2e7d32;
+  background: #f1f8e9;
+}
+
+.btn-issue-now:hover {
+  background: #c8e6c9;
+  border-color: #388e3c;
+}
+
+.btn-view-list {
+  border-color: var(--primary-blue);
+  color: var(--primary-blue);
+  background: #eaf1f8;
+}
+
+.btn-view-list:hover {
+  background: #d4e4f5;
+  border-color: #3f6ea8;
+}
+
+/* Issue Log Table (inside View List modal) */
+.issue-log-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.issue-log-table th,
+.issue-log-table td {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  text-align: left;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.issue-log-table th {
+  background: #f2f4f7;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+}
+
+.issue-log-table tr:nth-child(even) td {
+  background: #fafbfc;
+}
+
+/* Print: hide issue buttons and modals */
+@media print {
+  .cumulative-btn-group { display: none !important; }
+  .modal-overlay { display: none !important; }
+}

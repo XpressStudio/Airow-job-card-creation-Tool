@@ -315,9 +315,17 @@ const materialsDB = {
 
 const materialNames = Object.keys(materialsDB);
 
+const issueLogsMap = new Map();
+let materialRowCounter = 0;
+let currentIssueRowId = null;
+
 function createMaterialRow(defaultData = {}) {
   const tr = document.createElement("tr");
   tr.className = "material-row";
+
+  const rowId = `mat-row-${++materialRowCounter}`;
+  tr.dataset.rowId = rowId;
+  issueLogsMap.set(rowId, []);
 
   tr.innerHTML = `
     <td class="table-cell text-center">
@@ -352,26 +360,12 @@ function createMaterialRow(defaultData = {}) {
       <span class="unit-badge js-unit-badge empty">—</span>
     </td>
 
-    <td class="table-cell">
-      <input
-        type="number"
-        min="0"
-        step="any"
-        class="table-input js-cumulative-input"
-        placeholder="0"
-        value="${defaultData.cumulativeIssuedQty ?? ""}"
-      />
-    </td>
-
-    <td class="table-cell">
-      <input
-        type="number"
-        min="0"
-        step="any"
-        class="table-input js-used-input"
-        placeholder="0"
-        value="${defaultData.usedQty ?? ""}"
-      />
+    <td class="table-cell cumulative-issue-cell">
+      <span class="js-cumulative-display cumulative-display">0</span>
+      <div class="cumulative-btn-group">
+        <button type="button" class="btn-issue-now">Issue Now</button>
+        <button type="button" class="btn-view-list">View List</button>
+      </div>
     </td>
 
     <td class="table-cell">
@@ -430,14 +424,36 @@ function updateUnitBadge(row) {
   }
 }
 
+function getCumulativeIssued(rowId) {
+  const logs = issueLogsMap.get(rowId) || [];
+  return logs.reduce((sum, entry) => sum + entry.qty, 0);
+}
+
+function updateCumulativeDisplay(rowId) {
+  const row = materialsTableBody.querySelector(`[data-row-id="${rowId}"]`);
+  if (!row) return;
+  const display = row.querySelector(".js-cumulative-display");
+  const total = getCumulativeIssued(rowId);
+  display.textContent = Number.isInteger(total) ? total : total.toFixed(2);
+}
+
+function formatDateTime(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  const h = String(date.getHours()).padStart(2, '0');
+  const min = String(date.getMinutes()).padStart(2, '0');
+  return `${y}-${m}-${d} ${h}:${min}`;
+}
+
 function updateBalance(row) {
   const allocatedInput = row.querySelector(".js-allocated-input");
-  const usedInput = row.querySelector(".js-used-input");
   const balanceInput = row.querySelector(".js-balance-input");
+  const rowId = row.dataset.rowId;
 
   const allocated = parseNumber(allocatedInput.value);
-  const used = parseNumber(usedInput.value);
-  const balance = allocated - used;
+  const cumulative = rowId ? getCumulativeIssued(rowId) : 0;
+  const balance = allocated - cumulative;
 
   balanceInput.value = Number.isInteger(balance) ? balance : balance.toFixed(2);
 
@@ -493,9 +509,11 @@ function setActiveRow(row) {
 function bindMaterialRowEvents(row) {
   const materialInput = row.querySelector(".js-material-input");
   const allocatedInput = row.querySelector(".js-allocated-input");
-  const usedInput = row.querySelector(".js-used-input");
   const suggestionsBox = row.querySelector(".js-material-suggestions");
   const deleteBtn = row.querySelector(".js-delete-row");
+  const issueBtn = row.querySelector(".btn-issue-now");
+  const viewBtn = row.querySelector(".btn-view-list");
+  const rowId = row.dataset.rowId;
 
   materialInput.addEventListener("focus", () => {
     setActiveRow(row);
@@ -513,14 +531,8 @@ function bindMaterialRowEvents(row) {
     updateBalance(row);
   });
 
-  usedInput.addEventListener("input", () => {
-    setActiveRow(row);
-    updateBalance(row);
-  });
-
-  row.querySelector(".js-cumulative-input").addEventListener("input", () => {
-    setActiveRow(row);
-  });
+  issueBtn.addEventListener("click", () => openIssueNowModal(rowId));
+  viewBtn.addEventListener("click", () => openViewListModal(rowId));
 
   suggestionsBox.addEventListener("click", (e) => {
     const button = e.target.closest("[data-material]");
@@ -534,6 +546,7 @@ function bindMaterialRowEvents(row) {
   });
 
   deleteBtn.addEventListener("click", () => {
+    issueLogsMap.delete(rowId);
     row.remove();
     reindexMaterialRows();
 
@@ -569,12 +582,121 @@ addMaterialRowBtn.addEventListener("click", () => {
   createMaterialRow();
 });
 
+// --- Issue Tracking Modal Logic ---
+
+function openIssueNowModal(rowId) {
+  const row = materialsTableBody.querySelector(`[data-row-id="${rowId}"]`);
+  if (!row) return;
+
+  const materialName = row.querySelector(".js-material-input").value || "Unnamed Material";
+  const allocated = parseNumber(row.querySelector(".js-allocated-input").value);
+  const cumulative = getCumulativeIssued(rowId);
+  const remaining = allocated - cumulative;
+
+  document.getElementById("issueNowMaterialName").textContent = materialName;
+  document.getElementById("issueNowBalanceInfo").textContent = `Available to issue: ${Number.isInteger(remaining) ? remaining : remaining.toFixed(2)}`;
+  document.getElementById("issueQtyInput").value = "";
+  document.getElementById("issueNowError").style.display = "none";
+
+  currentIssueRowId = rowId;
+  document.getElementById("issueNowModal").style.display = "flex";
+  document.getElementById("issueQtyInput").focus();
+}
+
+function confirmIssue() {
+  const input = document.getElementById("issueQtyInput");
+  const errorEl = document.getElementById("issueNowError");
+  const qty = parseFloat(input.value);
+
+  if (!qty || qty <= 0) {
+    errorEl.textContent = "Please enter a valid quantity greater than 0.";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  const row = materialsTableBody.querySelector(`[data-row-id="${currentIssueRowId}"]`);
+  if (!row) return;
+
+  const allocated = parseNumber(row.querySelector(".js-allocated-input").value);
+  const cumulative = getCumulativeIssued(currentIssueRowId);
+  const remaining = allocated - cumulative;
+
+  if (qty > remaining) {
+    errorEl.textContent = `Cannot issue more than available balance (${Number.isInteger(remaining) ? remaining : remaining.toFixed(2)} remaining).`;
+    errorEl.style.display = "block";
+    return;
+  }
+
+  const logs = issueLogsMap.get(currentIssueRowId);
+  logs.push({ qty: qty, datetime: formatDateTime(new Date()) });
+
+  updateCumulativeDisplay(currentIssueRowId);
+  updateBalance(row);
+  closeModal(document.getElementById("issueNowModal"));
+}
+
+function openViewListModal(rowId) {
+  const row = materialsTableBody.querySelector(`[data-row-id="${rowId}"]`);
+  if (!row) return;
+
+  const materialName = row.querySelector(".js-material-input").value || "Unnamed Material";
+  document.getElementById("viewListMaterialName").textContent = materialName;
+
+  const logs = issueLogsMap.get(rowId) || [];
+  const tbody = document.getElementById("issueLogTableBody");
+  const emptyMsg = document.getElementById("viewListEmpty");
+  const table = document.getElementById("issueLogTable");
+
+  tbody.innerHTML = "";
+
+  if (!logs.length) {
+    emptyMsg.style.display = "block";
+    table.style.display = "none";
+  } else {
+    emptyMsg.style.display = "none";
+    table.style.display = "table";
+    logs.forEach((entry, i) => {
+      const parts = entry.datetime.split(" ");
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${i + 1}</td>
+        <td>${Number.isInteger(entry.qty) ? entry.qty : entry.qty.toFixed(2)}</td>
+        <td>${parts[0]}</td>
+        <td>${parts[1]}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  document.getElementById("viewListModal").style.display = "flex";
+}
+
+function closeModal(modalEl) {
+  modalEl.style.display = "none";
+}
+
+(function initModals() {
+  const issueModal = document.getElementById("issueNowModal");
+  const viewModal = document.getElementById("viewListModal");
+
+  document.getElementById("confirmIssueBtn").addEventListener("click", confirmIssue);
+  document.getElementById("cancelIssueBtn").addEventListener("click", () => closeModal(issueModal));
+  document.getElementById("issueNowClose").addEventListener("click", () => closeModal(issueModal));
+  document.getElementById("closeViewListBtn").addEventListener("click", () => closeModal(viewModal));
+  document.getElementById("viewListClose").addEventListener("click", () => closeModal(viewModal));
+
+  issueModal.addEventListener("click", (e) => { if (e.target === issueModal) closeModal(issueModal); });
+  viewModal.addEventListener("click", (e) => { if (e.target === viewModal) closeModal(viewModal); });
+
+  document.getElementById("issueQtyInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") confirmIssue();
+  });
+})();
+
 if (materialsTableBody) {
   createMaterialRow({
     material: "Cement - 50kg",
-    allocatedQty: 14,
-    cumulativeIssuedQty: "",
-    usedQty: ""
+    allocatedQty: 14
   });
 }
 
@@ -994,36 +1116,6 @@ preparedByName.value = "Anjana Perera";
 approvedByName.value = "Prageeth Fernando";
 remarksInput.value = "Tool list to be sent by PM.";
 
-if (addMaterialRowBtn && materialsTableBody) {
-  addMaterialRowBtn.addEventListener("click", () => {
-    createMaterialRow();
-  });
-}
-
-if (materialsTableBody) {
-  createMaterialRow({
-    material: "Cement - 50kg",
-    allocatedQty: 14,
-    cumulativeIssuedQty: "",
-    usedQty: ""
-  });
-}
-
-if (addToolRowBtn && toolsTableBody) {
-  addToolRowBtn.addEventListener("click", () => {
-    createToolRow();
-  });
-}
-
-if (toolsTableBody) {
-  createToolRow({
-    tool: "20L Empty Bucket",
-    allocatedQty: 2,
-    cumulativeIssuedQty: "",
-    usedQty: ""
-  });
-}
-
 const deleteBtn = document.getElementById("deleteBtn");
 const saveDraftBtn = document.getElementById("saveDraftBtn");
 const printPdfBtn = document.getElementById("printPdfBtn");
@@ -1053,8 +1145,7 @@ function buildPrintRowsFromTable(type = "materials") {
         description: safeText(row.querySelector(".js-material-input")?.value),
         allocated: safeText(row.querySelector(".js-allocated-input")?.value),
         unit: safeText(row.querySelector(".js-unit-badge")?.textContent).replace("—", "-"),
-        cumulative: safeText(row.querySelector(".js-cumulative-input")?.value),
-        used: safeText(row.querySelector(".js-used-input")?.value),
+        cumulative: safeText(row.querySelector(".js-cumulative-display")?.textContent),
         balance: safeText(row.querySelector(".js-balance-input")?.value)
       });
     });
@@ -1078,30 +1169,45 @@ function buildPrintRowsFromTable(type = "materials") {
   return rows;
 }
 
-function renderPrintTableRows(targetBodyId, rows, emptyMessage) {
+function renderPrintTableRows(targetBodyId, rows, emptyMessage, type) {
   const tbody = document.getElementById(targetBodyId);
   if (!tbody) return;
+
+  const cols = type === "materials" ? 6 : 7;
 
   if (!rows.length) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="7" class="empty-print-row">${emptyMessage}</td>
+        <td colspan="${cols}" class="empty-print-row">${emptyMessage}</td>
       </tr>
     `;
     return;
   }
 
-  tbody.innerHTML = rows.map(row => `
-    <tr>
-      <td>${row.no}</td>
-      <td>${row.description}</td>
-      <td>${row.allocated}</td>
-      <td>${row.unit}</td>
-      <td>${row.cumulative}</td>
-      <td>${row.used}</td>
-      <td>${row.balance}</td>
-    </tr>
-  `).join("");
+  if (type === "materials") {
+    tbody.innerHTML = rows.map(row => `
+      <tr>
+        <td>${row.no}</td>
+        <td>${row.description}</td>
+        <td>${row.allocated}</td>
+        <td>${row.unit}</td>
+        <td>${row.cumulative}</td>
+        <td>${row.balance}</td>
+      </tr>
+    `).join("");
+  } else {
+    tbody.innerHTML = rows.map(row => `
+      <tr>
+        <td>${row.no}</td>
+        <td>${row.description}</td>
+        <td>${row.allocated}</td>
+        <td>${row.unit}</td>
+        <td>${row.cumulative}</td>
+        <td>${row.used}</td>
+        <td>${row.balance}</td>
+      </tr>
+    `).join("");
+  }
 }
 
 function populatePrintLayout() {
@@ -1127,8 +1233,8 @@ function populatePrintLayout() {
   const materialRows = buildPrintRowsFromTable("materials");
   const toolRows = buildPrintRowsFromTable("tools");
 
-  renderPrintTableRows("printMaterialsBody", materialRows, "No material items added");
-  renderPrintTableRows("printToolsBody", toolRows, "No tools or machinery items added");
+  renderPrintTableRows("printMaterialsBody", materialRows, "No material items added", "materials");
+  renderPrintTableRows("printToolsBody", toolRows, "No tools or machinery items added", "tools");
 
   document.getElementById("printRemarks").textContent = safeText(remarksInput?.value);
   document.getElementById("printPreparedByName").textContent = safeText(preparedByName?.value);
