@@ -315,6 +315,18 @@ const materialsDB = {
 
 const materialNames = Object.keys(materialsDB);
 
+const materialPricesDB = {
+  "Cement - 50kg": 3750,
+  "Sand": 33133.33,
+  "X Inject EP 200": 8527.08,
+  "Masking tape": 334.63,
+  "X pruf Elastocem (2 component)": 4337.53,
+  "X Shield Reinforcing Fabric": 550,
+  "Grinder wheel": 177.61,
+  "Grinder": 9444.43,
+  "Construction Grout": 3013.69
+};
+
 const issueLogsMap = new Map();
 let materialRowCounter = 0;
 let currentIssueRowId = null;
@@ -366,6 +378,26 @@ function createMaterialRow(defaultData = {}) {
         <button type="button" class="btn-issue-now">Issue Now</button>
         <button type="button" class="btn-view-list">View List</button>
       </div>
+    </td>
+
+    <td class="table-cell">
+      <input
+        type="number"
+        min="0"
+        step="any"
+        class="table-input js-used-input"
+        placeholder="0"
+        value="${defaultData.usedQty ?? ""}"
+      />
+    </td>
+
+    <td class="table-cell">
+      <input
+        type="text"
+        readonly
+        class="table-input readonly-input js-price-spent-input"
+        placeholder="0.00"
+      />
     </td>
 
     <td class="table-cell">
@@ -422,6 +454,17 @@ function updateUnitBadge(row) {
     unitBadge.textContent = "—";
     unitBadge.classList.add("empty");
   }
+}
+
+function updateMaterialPrice(row) {
+  const materialInput = row.querySelector(".js-material-input");
+  const usedInput = row.querySelector(".js-used-input");
+  const priceInput = row.querySelector(".js-price-spent-input");
+  const materialName = materialInput.value.trim();
+  const unitPrice = materialPricesDB[materialName] || 0;
+  const used = parseNumber(usedInput.value);
+  const total = unitPrice * used;
+  priceInput.value = total > 0 ? total.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00";
 }
 
 function getCumulativeIssued(rowId) {
@@ -509,6 +552,7 @@ function setActiveRow(row) {
 function bindMaterialRowEvents(row) {
   const materialInput = row.querySelector(".js-material-input");
   const allocatedInput = row.querySelector(".js-allocated-input");
+  const usedInput = row.querySelector(".js-used-input");
   const suggestionsBox = row.querySelector(".js-material-suggestions");
   const deleteBtn = row.querySelector(".js-delete-row");
   const issueBtn = row.querySelector(".btn-issue-now");
@@ -524,11 +568,17 @@ function bindMaterialRowEvents(row) {
     setActiveRow(row);
     showMaterialSuggestions(row, materialInput.value);
     updateUnitBadge(row);
+    updateMaterialPrice(row);
   });
 
   allocatedInput.addEventListener("input", () => {
     setActiveRow(row);
     updateBalance(row);
+  });
+
+  usedInput.addEventListener("input", () => {
+    setActiveRow(row);
+    updateMaterialPrice(row);
   });
 
   issueBtn.addEventListener("click", () => openIssueNowModal(rowId));
@@ -541,6 +591,7 @@ function bindMaterialRowEvents(row) {
     materialInput.value = button.dataset.material;
     updateUnitBadge(row);
     updateBalance(row);
+    updateMaterialPrice(row);
     hideSuggestions(row);
     materialInput.dispatchEvent(new Event("change"));
   });
@@ -743,6 +794,44 @@ const toolsDB = {
 
 const toolNames = Object.keys(toolsDB);
 
+const toolPricesDB = {
+  "20L Empty Bucket": 630,
+  "Grinder Machine (4.5'')": 9444.43,
+  "Cup Wheel (4.5'')": 791.19,
+  "Cutting wheel 4.5 inch": 177.61,
+  "Wire Code 50m": 0,
+  "Baby Drill machine (Speed control Machine)": 6118.65,
+  "Mixing Paddle": 1140,
+  "Hammer": 1016.67,
+  "Chissel": 598.50,
+  "1L Measuring Cup": 372.32,
+  "Coir Brush": 0,
+  "Face Shield": 96.75,
+  "Gogles": 125.66,
+  "Rubber Gloves": 80.30,
+  "Cotton Gloves": 75.19,
+  "Safety Helmert": 450,
+  "Safety Jacket": 279.34,
+  "Safety Boots set": 4500,
+  "Thinner": 559.34,
+  "Cotton Waste": 117.96,
+  "Wire Brush": 503.30,
+  "6\" Paint Brush": 1175,
+  "Hose for water injection to the core cut Machine": 31334.75,
+  "Mason trowel (Normal)": 460,
+  "Smallest size (1\") Mason trowel": 345,
+  "1\" Brush": 320.60,
+  "Hoe": 0,
+  "Shovel": 0,
+  "Roller Brush": 556.37,
+  "Permenent Marker": 112.53,
+  "Blower Machine": 3850,
+  "2\" Scraper": 179.96,
+  "Ball Hammer": 1757.57,
+  "Empty Fertilizer Bag": 0,
+  "Sealent Gun": 0
+};
+
 function createToolRow(defaultData = {}) {
   const tr = document.createElement("tr");
   tr.className = "material-row";
@@ -806,6 +895,15 @@ function createToolRow(defaultData = {}) {
       <input
         type="text"
         readonly
+        class="table-input readonly-input js-tool-price-spent-input"
+        placeholder="0.00"
+      />
+    </td>
+
+    <td class="table-cell">
+      <input
+        type="text"
+        readonly
         class="table-input readonly-input js-tool-balance-input"
         placeholder="0"
       />
@@ -853,6 +951,17 @@ function updateToolUnitBadge(row) {
   }
 }
 
+function updateToolPrice(row) {
+  const toolInput = row.querySelector(".js-tool-input");
+  const usedInput = row.querySelector(".js-tool-used-input");
+  const priceInput = row.querySelector(".js-tool-price-spent-input");
+  const toolName = toolInput.value.trim();
+  const unitPrice = toolPricesDB[toolName] || 0;
+  const used = parseNumber(usedInput.value);
+  const total = unitPrice * used;
+  priceInput.value = total > 0 ? total.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00";
+}
+
 function updateToolBalance(row) {
   const allocatedInput = row.querySelector(".js-tool-allocated-input");
   const usedInput = row.querySelector(".js-tool-used-input");
@@ -869,6 +978,8 @@ function updateToolBalance(row) {
   } else {
     balanceInput.classList.remove("balance-alert");
   }
+
+  updateToolPrice(row);
 }
 
 function showToolSuggestions(row, query) {
@@ -927,6 +1038,7 @@ function bindToolRowEvents(row) {
     setActiveToolRow(row);
     showToolSuggestions(row, toolInput.value);
     updateToolUnitBadge(row);
+    updateToolPrice(row);
   });
 
   allocatedInput.addEventListener("input", () => {
@@ -950,6 +1062,7 @@ function bindToolRowEvents(row) {
     toolInput.value = button.dataset.tool;
     updateToolUnitBadge(row);
     updateToolBalance(row);
+    updateToolPrice(row);
     hideToolSuggestions(row);
     toolInput.dispatchEvent(new Event("change"));
   });
@@ -1146,6 +1259,8 @@ function buildPrintRowsFromTable(type = "materials") {
         allocated: safeText(row.querySelector(".js-allocated-input")?.value),
         unit: safeText(row.querySelector(".js-unit-badge")?.textContent).replace("—", "-"),
         cumulative: safeText(row.querySelector(".js-cumulative-display")?.textContent),
+        used: safeText(row.querySelector(".js-used-input")?.value),
+        price: safeText(row.querySelector(".js-price-spent-input")?.value),
         balance: safeText(row.querySelector(".js-balance-input")?.value)
       });
     });
@@ -1161,6 +1276,7 @@ function buildPrintRowsFromTable(type = "materials") {
         unit: safeText(row.querySelector(".js-tool-unit-badge")?.textContent).replace("—", "-"),
         cumulative: safeText(row.querySelector(".js-tool-cumulative-input")?.value),
         used: safeText(row.querySelector(".js-tool-used-input")?.value),
+        price: safeText(row.querySelector(".js-tool-price-spent-input")?.value),
         balance: safeText(row.querySelector(".js-tool-balance-input")?.value)
       });
     });
@@ -1173,41 +1289,27 @@ function renderPrintTableRows(targetBodyId, rows, emptyMessage, type) {
   const tbody = document.getElementById(targetBodyId);
   if (!tbody) return;
 
-  const cols = type === "materials" ? 6 : 7;
-
   if (!rows.length) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="${cols}" class="empty-print-row">${emptyMessage}</td>
+        <td colspan="8" class="empty-print-row">${emptyMessage}</td>
       </tr>
     `;
     return;
   }
 
-  if (type === "materials") {
-    tbody.innerHTML = rows.map(row => `
-      <tr>
-        <td>${row.no}</td>
-        <td>${row.description}</td>
-        <td>${row.allocated}</td>
-        <td>${row.unit}</td>
-        <td>${row.cumulative}</td>
-        <td>${row.balance}</td>
-      </tr>
-    `).join("");
-  } else {
-    tbody.innerHTML = rows.map(row => `
-      <tr>
-        <td>${row.no}</td>
-        <td>${row.description}</td>
-        <td>${row.allocated}</td>
-        <td>${row.unit}</td>
-        <td>${row.cumulative}</td>
-        <td>${row.used}</td>
-        <td>${row.balance}</td>
-      </tr>
-    `).join("");
-  }
+  tbody.innerHTML = rows.map(row => `
+    <tr>
+      <td>${row.no}</td>
+      <td>${row.description}</td>
+      <td>${row.allocated}</td>
+      <td>${row.unit}</td>
+      <td>${row.cumulative}</td>
+      <td>${row.used}</td>
+      <td>${row.price}</td>
+      <td>${row.balance}</td>
+    </tr>
+  `).join("");
 }
 
 function populatePrintLayout() {
