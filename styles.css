@@ -429,7 +429,8 @@ button {
   border: 1px solid var(--line-dark);
   background: #ffffff;
   box-shadow: var(--shadow-md);
-  overflow: hidden;
+  overflow-y: auto;
+  max-height: 260px;
   border-radius: 0;
 }
 
