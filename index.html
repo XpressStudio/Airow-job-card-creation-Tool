@@ -207,14 +207,25 @@
       </p>
     </div>
 
-    <button
-      id="addMaterialRowBtn"
-      class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-medium px-5 py-3 shadow-lg shadow-blue-500/20 transition"
-      type="button"
-    >
-      <span class="text-lg leading-none">+</span>
-      <span>Add Item</span>
-    </button>
+    <div class="flex flex-wrap gap-3">
+      <button
+        id="addNewProductBtn"
+        class="inline-flex items-center justify-center gap-2 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium px-5 py-3 border border-white/10 transition"
+        type="button"
+      >
+        <span class="text-lg leading-none">＋</span>
+        <span>Add New Item</span>
+      </button>
+
+      <button
+        id="addMaterialRowBtn"
+        class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-medium px-5 py-3 shadow-lg shadow-blue-500/20 transition"
+        type="button"
+      >
+        <span class="text-lg leading-none">+</span>
+        <span>Add Item</span>
+      </button>
+    </div>
   </div>
 
   <div class="overflow-x-auto rounded-2xl border border-white/10">
@@ -561,6 +572,35 @@
     </div>
   </div>
 </section>
+
+<!-- Add New Product Modal -->
+<div id="addProductModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Add New Material Item</h3>
+      <button type="button" class="modal-close" id="addProductClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-balance-info">This is a mock item list update. It saves in this browser only.</p>
+
+      <label for="newProductNameInput">Product / Material Name</label>
+      <input type="text" id="newProductNameInput" class="modal-input" placeholder="e.g., Waterproofing Primer 20L" />
+
+      <label for="newProductUnitInput" class="modal-label-spaced">Unit</label>
+      <input type="text" id="newProductUnitInput" class="modal-input" placeholder="e.g., NOS, KG, LTR, m" />
+
+      <label for="newProductPriceInput" class="modal-label-spaced">Per Item Price (LKR)</label>
+      <input type="number" id="newProductPriceInput" min="0" step="any" class="modal-input" placeholder="e.g., 2500" />
+
+      <p class="modal-error" id="addProductError" style="display:none;"></p>
+      <p class="modal-success" id="addProductSuccess" style="display:none;">Product added successfully.</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-action btn-secondary" id="cancelAddProductBtn">Cancel</button>
+      <button type="button" class="btn-action btn-primary" id="submitAddProductBtn">Submit</button>
+    </div>
+  </div>
+</div>
 
 <!-- Issue Now Modal -->
 <div id="issueNowModal" class="modal-overlay" style="display:none;">
