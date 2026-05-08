@@ -1015,7 +1015,36 @@ const stockProductsDB = {
   "X INJECT SWJ1 SE 185": { unit: "m", price: 0.0 },
 };
 
-const productNames = Object.keys(stockProductsDB);
+const CUSTOM_PRODUCTS_STORAGE_KEY = "airowCustomProducts";
+
+function loadCustomProducts() {
+  try {
+    const savedProducts = JSON.parse(localStorage.getItem(CUSTOM_PRODUCTS_STORAGE_KEY) || "{}");
+
+    Object.entries(savedProducts).forEach(([name, details]) => {
+      if (!name || !details) return;
+      stockProductsDB[name] = {
+        unit: details.unit || "NOS",
+        price: Number(details.price) || 0
+      };
+    });
+  } catch (error) {
+    console.warn("Could not load custom products", error);
+  }
+}
+
+function saveCustomProduct(name, details) {
+  const savedProducts = JSON.parse(localStorage.getItem(CUSTOM_PRODUCTS_STORAGE_KEY) || "{}");
+  savedProducts[name] = details;
+  localStorage.setItem(CUSTOM_PRODUCTS_STORAGE_KEY, JSON.stringify(savedProducts));
+}
+
+function refreshProductNames() {
+  return Object.keys(stockProductsDB).sort((a, b) => a.localeCompare(b));
+}
+
+loadCustomProducts();
+let productNames = refreshProductNames();
 
 const issueLogsMap = new Map();
 let materialRowCounter = 0;
@@ -1310,6 +1339,103 @@ document.addEventListener("click", (e) => {
 
 addMaterialRowBtn.addEventListener("click", () => {
   createMaterialRow();
+});
+
+// --- Add New Product Mock Feature ---
+const addNewProductBtn = document.getElementById("addNewProductBtn");
+const addProductModal = document.getElementById("addProductModal");
+const addProductClose = document.getElementById("addProductClose");
+const cancelAddProductBtn = document.getElementById("cancelAddProductBtn");
+const submitAddProductBtn = document.getElementById("submitAddProductBtn");
+const newProductNameInput = document.getElementById("newProductNameInput");
+const newProductUnitInput = document.getElementById("newProductUnitInput");
+const newProductPriceInput = document.getElementById("newProductPriceInput");
+const addProductError = document.getElementById("addProductError");
+const addProductSuccess = document.getElementById("addProductSuccess");
+
+function openAddProductModal() {
+  addProductError.style.display = "none";
+  addProductSuccess.style.display = "none";
+  newProductNameInput.value = "";
+  newProductUnitInput.value = "";
+  newProductPriceInput.value = "";
+  addProductModal.style.display = "flex";
+  newProductNameInput.focus();
+}
+
+function closeAddProductModal() {
+  addProductModal.style.display = "none";
+}
+
+function normalizeProductName(name) {
+  return name.trim().replace(/\s+/g, " ").toUpperCase();
+}
+
+function addNewProductToList() {
+  const productName = normalizeProductName(newProductNameInput.value);
+  const unit = newProductUnitInput.value.trim().replace(/\s+/g, " ").toUpperCase() || "NOS";
+  const price = parseFloat(newProductPriceInput.value);
+
+  addProductError.style.display = "none";
+  addProductSuccess.style.display = "none";
+
+  if (!productName) {
+    addProductError.textContent = "Please enter the product name.";
+    addProductError.style.display = "block";
+    return;
+  }
+
+  if (Number.isNaN(price) || price < 0) {
+    addProductError.textContent = "Please enter a valid per item price.";
+    addProductError.style.display = "block";
+    return;
+  }
+
+  if (stockProductsDB[productName]) {
+    addProductError.textContent = "This product already exists in the item list.";
+    addProductError.style.display = "block";
+    return;
+  }
+
+  stockProductsDB[productName] = { unit, price };
+  saveCustomProduct(productName, { unit, price });
+  productNames = refreshProductNames();
+
+  addProductSuccess.textContent = "Product added successfully.";
+  addProductSuccess.style.display = "block";
+
+  setTimeout(() => {
+    closeAddProductModal();
+  }, 900);
+}
+
+if (addNewProductBtn) {
+  addNewProductBtn.addEventListener("click", openAddProductModal);
+}
+
+if (submitAddProductBtn) {
+  submitAddProductBtn.addEventListener("click", addNewProductToList);
+}
+
+if (cancelAddProductBtn) {
+  cancelAddProductBtn.addEventListener("click", closeAddProductModal);
+}
+
+if (addProductClose) {
+  addProductClose.addEventListener("click", closeAddProductModal);
+}
+
+if (addProductModal) {
+  addProductModal.addEventListener("click", (e) => {
+    if (e.target === addProductModal) closeAddProductModal();
+  });
+}
+
+[newProductNameInput, newProductUnitInput, newProductPriceInput].forEach(input => {
+  if (!input) return;
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") addNewProductToList();
+  });
 });
 
 // --- Issue Tracking Modal Logic ---
