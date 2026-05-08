@@ -1082,3 +1082,30 @@ button {
   .cumulative-btn-group { display: none !important; }
   .modal-overlay { display: none !important; }
 }
+/* Add New Item Mock Feature */
+#addNewProductBtn {
+  background: #ffffff !important;
+  color: var(--primary-blue) !important;
+  border: 1px solid var(--primary-blue) !important;
+  box-shadow: none !important;
+  font-weight: 700;
+}
+
+#addNewProductBtn:hover {
+  background: #eaf1f8 !important;
+  color: #3f6ea8 !important;
+}
+
+.modal-label-spaced {
+  margin-top: 14px;
+}
+
+.modal-success {
+  color: #2e7d32;
+  background: #f1f8e9;
+  border: 1px solid #4caf50;
+  padding: 8px 10px;
+  font-size: 0.85rem;
+  margin-top: 10px;
+  font-weight: 700;
+}
